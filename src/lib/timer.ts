@@ -176,11 +176,6 @@ export class Timer {
 
     return 0
   }
-
-  save(): void {
-    this.pause()
-    this.timerManager.emit('timer-save', { timer: this })
-  }
 }
 
 interface TimerEvent {
@@ -247,8 +242,6 @@ export default class TimerManager {
   }
 
   emit(event: string, data: unknown = {}): void {
-    console.log(event, data);
-    
     if (!this.subscriptions.has(event)) {
       return
     }

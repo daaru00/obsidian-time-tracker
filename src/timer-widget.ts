@@ -8,10 +8,13 @@ export default class TimerWidget {
   timerControlContainer: HTMLDivElement;
   issueTransitions: import("/home/fabio/Obsidian/Bitbull/.obsidian/plugins/obsidian-jira-issue/src/lib/jira").JiraIssueTransitions[];
   transitionControlContainer: HTMLDivElement;
+  saveCommandIdentifier: string;
+  issueBlock: Element;
 
-  constructor(plugin: TimerTrackerPlugin, el: HTMLElement) {
+  constructor(plugin: TimerTrackerPlugin, el: HTMLElement, issueBlock?: Element) {
     this.plugin = plugin
     this.el = el
+    this.issueBlock = issueBlock
     this.plugin.timeManager.on('timer-start', this.showTimerControl.bind(this))
     this.plugin.timeManager.on('timer-paused', this.showTimerControl.bind(this))
     this.plugin.timeManager.on('timer-resumed', this.showTimerControl.bind(this))
@@ -19,17 +22,19 @@ export default class TimerWidget {
     this.plugin.timeManager.on('timer-deleted', this.showTimerControl.bind(this))
   }
 
-  getIdentifier(): string {
-    return this.identifier
-  }
-
   setIdentifier(identifier: string): TimerWidget {
+    this.el.dataset.identifier = identifier
+
     this.el.empty()
 
     this.identifier = identifier
     this.showTimerControl()
 
     return this
+  }
+
+  setSaveCommandCallback(identifier: string): void {
+    this.saveCommandIdentifier = identifier
   }
 
   showTimerControl(): void {    
@@ -70,10 +75,12 @@ export default class TimerWidget {
         .onClick(() => {
           timer.reset()
         })
+
       new ButtonComponent(this.timerControlContainer)
         .setButtonText("save")
         .onClick(() => {
-          timer.save()
+          timer.pause()
+          this.issueBlock.dispatchEvent(new CustomEvent('timersave', { detail: timer }))
         })
     }
   }

@@ -4,8 +4,13 @@ import TimerTrackerPluginSettings, { DEFAULT_SETTINGS } from './settings'
 import JiraIssueSettingTab from './settings-tab'
 import TimerManager from './lib/timer'
 import TimerView, { VIEW_TYPE_OUTPUT } from './timer-view'
-import SaveModal from './save-modal'
 import TimerWidget from './timer-widget'
+
+interface OnTimerSavedEvent {
+	detail: {
+		id: string
+	}
+}
 
 export default class TimerTrackerPlugin extends Plugin {
 	settings: TimerTrackerPluginSettings
@@ -71,35 +76,38 @@ export default class TimerTrackerPlugin extends Plugin {
 
 	initTimerManager(): void {
 		this.timeManager = new TimerManager()
-		this.timeManager.on('timer-save', (event) => {
-			new SaveModal(this, event.timer).open()
-		})
 	}
 
 	async timerBlockProcessor(content: string, el: HTMLElement): Promise<void> {
 		el.empty()
 
-		new TimerWidget(this, el)
+		new TimerWidget(this, el, null)
 			.setIdentifier(content.replace(new RegExp(os.EOL, 'g'), ''))
 	}
 
 	postProcessor(el: HTMLElement): void {
-		const codeBlocks = Array.from(el.querySelectorAll(".timer-tracker-compatible"))		
+		const issueBlocks = Array.from(el.querySelectorAll(".timer-tracker-compatible"))		
 
-		if (!codeBlocks.length) {
+		if (!issueBlocks.length) {
 			return;
 		}
 
-		for (const codeBlock of codeBlocks) {
-			const identifier = codeBlock.getAttribute('data-identifier')
+		for (const issueBlock of issueBlocks) {
+			const identifier = issueBlock.getAttribute('data-identifier')
 			if (!identifier) {
 				continue
 			}
 
-			const container = codeBlock.parentElement.createDiv({ cls: ['timer-control-container'] })
-			new TimerWidget(this, container)
+			const timerWidget = issueBlock.parentElement.createDiv({ cls: ['timer-control-container'] })
+			timerWidget.addEventListener('timersaved', this.onTimeSaved.bind(this))
+
+			new TimerWidget(this, timerWidget, issueBlock)
 				.setIdentifier(identifier)
 		}
+	}
+
+	async onTimeSaved(event: OnTimerSavedEvent): Promise<void> {
+		this.timeManager.deleteById(event.detail.id)
 	}
 
 	async loadSettings(): Promise<void> {
