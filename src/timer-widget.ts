@@ -38,10 +38,10 @@ export default class TimerWidget {
     }
 
     if (!this.timerControlContainer) {
-      this.timerControlContainer = this.el.createDiv({ cls: ['jira-issue-timer-control'] })
+      this.timerControlContainer = this.el.createDiv({ cls: ['timer-control'] })
     } else {
       this.timerControlContainer.empty()
-    }
+    }    
 
     const timer = this.plugin.timeManager.getById(this.identifier)
     if (!timer) {

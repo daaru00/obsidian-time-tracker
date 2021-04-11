@@ -15,10 +15,11 @@ export default class TimerTrackerPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings()
 		this.addSettingTab(new JiraIssueSettingTab(this.app, this))
-		
-		this.registerMarkdownCodeBlockProcessor('timer', this.issueBlockProcessor.bind(this))
 
 		this.initTimerManager()
+		
+		this.registerMarkdownCodeBlockProcessor('timer', this.timerBlockProcessor.bind(this))
+		this.registerMarkdownPostProcessor(this.postProcessor.bind(this))
 
 		this.registerView(
 			VIEW_TYPE_OUTPUT,
@@ -75,11 +76,30 @@ export default class TimerTrackerPlugin extends Plugin {
 		})
 	}
 
-	async issueBlockProcessor(content: string, el: HTMLElement): Promise<void> {
+	async timerBlockProcessor(content: string, el: HTMLElement): Promise<void> {
 		el.empty()
 
 		new TimerWidget(this, el)
 			.setIdentifier(content.replace(new RegExp(os.EOL, 'g'), ''))
+	}
+
+	postProcessor(el: HTMLElement): void {
+		const codeBlocks = Array.from(el.querySelectorAll(".timer-tracker-compatible"))		
+
+		if (!codeBlocks.length) {
+			return;
+		}
+
+		for (const codeBlock of codeBlocks) {
+			const identifier = codeBlock.getAttribute('data-identifier')
+			if (!identifier) {
+				continue
+			}
+
+			const container = codeBlock.parentElement.createDiv({ cls: ['timer-control-container'] })
+			new TimerWidget(this, container)
+				.setIdentifier(identifier)
+		}
 	}
 
 	async loadSettings(): Promise<void> {

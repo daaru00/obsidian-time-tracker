@@ -229,7 +229,11 @@ export default class TimerManager {
   }
 
   deleteAll(): void {
+    const ids = this.timers.map(timer => timer.id)
     this.timers = []
+    for (const id of ids) {
+      this.emit('timer-deleted', { timer: { id } })
+    }
   }
 
   on(event: string, callback: (event: TimerEvent) => void): void {
@@ -243,6 +247,8 @@ export default class TimerManager {
   }
 
   emit(event: string, data: unknown = {}): void {
+    console.log(event, data);
+    
     if (!this.subscriptions.has(event)) {
       return
     }
