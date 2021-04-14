@@ -16,3 +16,29 @@
 .timer-control button {
     float: right;
 }
+
+.time-tracker-table {
+    padding: 10px;
+}
+
+.time-tracker-table th {
+    text-align: left;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.timer-view {
+    min-width: 5em;
+    text-align: center;
+    display: inline-block;
+}
+
+.timer-view-status-bar span{
+    margin: 0 5px;
+}
+
+.timer-control button {
+    font-size: 1em;
+    padding: 0 0.5em;
+    margin: 0;
+}

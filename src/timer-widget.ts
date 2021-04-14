@@ -6,81 +6,95 @@ export default class TimerWidget {
   plugin: TimerTrackerPlugin;
   identifier: string;
   timerControlContainer: HTMLDivElement;
-  issueTransitions: import("/home/fabio/Obsidian/Bitbull/.obsidian/plugins/obsidian-jira-issue/src/lib/jira").JiraIssueTransitions[];
-  transitionControlContainer: HTMLDivElement;
-  saveCommandIdentifier: string;
   issueBlock: Element;
+  timerView: Element;
 
-  constructor(plugin: TimerTrackerPlugin, el: HTMLElement, issueBlock?: Element) {
+  constructor(plugin: TimerTrackerPlugin, el: HTMLElement) {
     this.plugin = plugin
     this.el = el
-    this.issueBlock = issueBlock
-    this.plugin.timeManager.on('timer-start', this.showTimerControl.bind(this))
-    this.plugin.timeManager.on('timer-paused', this.showTimerControl.bind(this))
-    this.plugin.timeManager.on('timer-resumed', this.showTimerControl.bind(this))
-    this.plugin.timeManager.on('timer-reset', this.showTimerControl.bind(this))
-    this.plugin.timeManager.on('timer-deleted', this.showTimerControl.bind(this))
+    this.plugin.timeManager.on('timer-start', this.refreshTimerControl.bind(this))
+    this.plugin.timeManager.on('timer-paused', this.refreshTimerControl.bind(this))
+    this.plugin.timeManager.on('timer-resumed', this.refreshTimerControl.bind(this))
+    this.plugin.timeManager.on('timer-reset', this.refreshTimerControl.bind(this))
+    this.plugin.timeManager.on('timer-deleted', this.refreshTimerControl.bind(this))
+
+    this.el.addEventListener('tick', this.refreshTimerView.bind(this))
   }
 
   setIdentifier(identifier: string): TimerWidget {
     this.el.dataset.identifier = identifier
-
     this.el.empty()
 
     this.identifier = identifier
-    this.showTimerControl()
 
     return this
   }
 
-  setSaveCommandCallback(identifier: string): void {
-    this.saveCommandIdentifier = identifier
+  showTimerView(): TimerWidget {
+    this.timerView = this.el.createSpan({ cls: ['timer-view'] })
+    this.refreshTimerView()
+
+    return this
   }
 
-  showTimerControl(): void {    
-    if (!this.identifier) {
+  refreshTimerView(): void {
+    if (!this.timerView) {
+      return
+    }
+    this.timerView.empty()
+
+    const timer = this.plugin.timeManager.getById(this.identifier)
+    if (!timer) {
       return
     }
 
+    this.timerView.setText(timer.getFormattedDurationString())
+  }
+
+  showTimerControl(): TimerWidget {
+    this.timerControlContainer = this.el.createDiv({ cls: ['timer-control'] })
+    this.refreshTimerControl()
+
+    return this
+  }
+
+  refreshTimerControl(): void {
     if (!this.timerControlContainer) {
-      this.timerControlContainer = this.el.createDiv({ cls: ['timer-control'] })
-    } else {
-      this.timerControlContainer.empty()
-    }    
+      return
+    }
+    this.timerControlContainer.empty()
 
     const timer = this.plugin.timeManager.getById(this.identifier)
     if (!timer) {
       new ButtonComponent(this.timerControlContainer)
-        .setButtonText("start")
+        .setButtonText("\u23F5")
         .onClick(() => {
           const timer = this.plugin.timeManager.createNew(this.identifier)
           timer.start()
+          this.refreshTimerView()
         })
     } else {
       if (timer.isRunning) {
         new ButtonComponent(this.timerControlContainer)
-          .setButtonText("pause")
+          .setButtonText("\u23F8")
           .onClick(() => {
             timer.pause()
+            this.refreshTimerView()
           })
       } else {
         new ButtonComponent(this.timerControlContainer)
-          .setButtonText("resume")
+          .setButtonText("\u23EF")
           .onClick(() => {
             timer.resume()
+            this.refreshTimerView()
           })
       }
-      new ButtonComponent(this.timerControlContainer)
-        .setButtonText("reset")
-        .onClick(() => {
-          timer.reset()
-        })
 
       new ButtonComponent(this.timerControlContainer)
-        .setButtonText("save")
+        .setButtonText("\u23F9")
         .onClick(() => {
-          timer.pause()
-          this.issueBlock.dispatchEvent(new CustomEvent('timersave', { detail: timer }))
+          timer.save()
+          this.refreshTimerView()
         })
     }
   }

@@ -12,7 +12,6 @@ function getTimestamp(date?: Date): number {
 export class Timer {
   id: string
   time_entry_id: string
-  issue_id: string
   comments: string
   durationAcc: number
   startedAt: Date
@@ -21,12 +20,14 @@ export class Timer {
   isRunning: boolean
   timerManager: TimerManager
 
-  constructor(id: string, timerManager: TimerManager) {
-    this.id = id
+  constructor(timerManager: TimerManager, id: string) {
     this.timerManager = timerManager
+    this.id = id
   }
 
   start(): void {
+    this.timerManager.pauseAll()
+
     if (this.startedAt !== null) {
       return this.resume()
     }
@@ -64,7 +65,14 @@ export class Timer {
     this.timerManager.emit('timer-paused', { timer: this })
   }
 
+  save(): void {
+    this.pause()
+    this.timerManager.emit('timer-saved', { timer: this })
+  }
+
   resume(): void {
+    this.timerManager.pauseAll()
+
     if (this.isRunning) {
       return
     }
@@ -195,6 +203,10 @@ export default class TimerManager {
     return this.timers
   }
 
+  getRunningTimer(): Timer|undefined {
+    return this.timers.find(timer => timer.isRunning)
+  }
+
   getById(id: string): Timer|undefined {
     return this.timers.find(timer => timer.id === id)
   }
@@ -203,7 +215,7 @@ export default class TimerManager {
     if (this.getById(id) !== undefined) {
       throw 'Duplicated Timer Identifier'
     }
-    const timer = new Timer(id, this)
+    const timer = new Timer(this, id)
     this.timers.push(timer)
     return timer
   }

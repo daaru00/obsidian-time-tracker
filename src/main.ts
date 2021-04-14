@@ -16,6 +16,7 @@ export default class TimerTrackerPlugin extends Plugin {
 	settings: TimerTrackerPluginSettings
 	timeManager: TimerManager
 	timerView: TimerView
+	statusBarItem: HTMLElement
 
 	async onload(): Promise<void> {
 		await this.loadSettings()
@@ -54,6 +55,32 @@ export default class TimerTrackerPlugin extends Plugin {
 			callback: () => this.timeManager.deleteAll(),
 			hotkeys: []
 		})
+
+		this.statusBarItem = this.addStatusBarItem()
+		this.statusBarItem.addClass('timer-view-status-bar')
+		this.registerInterval(window.setInterval(() => {
+			const runningTimer = this.timeManager.getRunningTimer()
+			if (!runningTimer) {
+				if (this.statusBarItem.childElementCount > 0) {
+					this.statusBarItem.empty()
+				}
+				return
+			}
+			this.statusBarItem.empty()
+
+			this.statusBarItem.createSpan({
+				text: runningTimer.id
+			})
+			this.statusBarItem.createSpan({
+				text: runningTimer.getFormattedDurationString()
+			}).addClass('timer-view')
+
+		}, 1000))
+
+		this.registerInterval(window.setInterval(() => {
+			window.document.querySelectorAll('.timer-control-container.timer-view')
+				.forEach(timeWidget => timeWidget.dispatchEvent(new CustomEvent('tick')))
+		}, 1000))
 	}
 
 	initLeaf(): void {
@@ -76,13 +103,22 @@ export default class TimerTrackerPlugin extends Plugin {
 
 	initTimerManager(): void {
 		this.timeManager = new TimerManager()
+		this.timeManager.on('timer-saved', ({ timer }) => {
+			const issueBlock = window.document.querySelector(`.timer-tracker-compatible[data-identifier="${timer.id}"]`)
+			if (issueBlock) {
+				issueBlock.dispatchEvent(new CustomEvent('timersave', { detail: timer }))
+			}
+		})
 	}
 
 	async timerBlockProcessor(content: string, el: HTMLElement): Promise<void> {
 		el.empty()
+		el.addClasses(['timer-control-container', 'timer-view'])
 
-		new TimerWidget(this, el, null)
+		new TimerWidget(this, el)
 			.setIdentifier(content.replace(new RegExp(os.EOL, 'g'), ''))
+			.showTimerView()
+			.showTimerControl()
 	}
 
 	postProcessor(el: HTMLElement): void {
@@ -101,8 +137,9 @@ export default class TimerTrackerPlugin extends Plugin {
 			const timerWidget = issueBlock.parentElement.createDiv({ cls: ['timer-control-container'] })
 			timerWidget.addEventListener('timersaved', this.onTimeSaved.bind(this))
 
-			new TimerWidget(this, timerWidget, issueBlock)
+			new TimerWidget(this, timerWidget)
 				.setIdentifier(identifier)
+				.showTimerControl()
 		}
 	}
 
