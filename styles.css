@@ -11,10 +11,32 @@
 .timer-control { 
     display: inline-block;
     width: 100%;
+    padding: 0 5px;
+    text-align: right;
+}
+
+.timer-control-container.has-timer-view {
+    width: 15em;
+    border-radius: 5px;
+}
+
+.timer-control-container.has-timer-view .timer-view {
+    width: 100%;
+    display: inline-block;
+    text-align: center;
+    font-size: 2em;
+    padding: 0.5em;
+}
+
+.timer-control-container.has-timer-view .timer-control {
+    text-align: center;
 }
 
 .timer-control button {
-    float: right;
+    font-size: 1em;
+    padding: 0 0.5em;
+    margin: 0;
+    min-width: 2em;
 }
 
 .time-tracker-table {
@@ -27,18 +49,16 @@
     font-weight: normal;
 }
 
+.time-tracker-table button {
+    padding: 0.5em;
+}
+
 .timer-view {
     min-width: 5em;
-    text-align: center;
-    display: inline-block;
 }
 
 .timer-view-status-bar span{
     margin: 0 5px;
-}
-
-.timer-control button {
-    font-size: 1em;
-    padding: 0 0.5em;
-    margin: 0;
+    display: inline-block;
+    text-align: center;
 }

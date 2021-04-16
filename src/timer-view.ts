@@ -38,6 +38,7 @@ export default class TimerView extends ItemView {
 		table.createTHead().createEl('th').setText('Commands')
 		this.timerTable = table.createTBody()
 
+		this.refreshTimerList()
     this.registerInterval(window.setInterval(this.refreshTimerList.bind(this), 1000))
 	}
 
@@ -78,6 +79,13 @@ export default class TimerView extends ItemView {
         .setButtonText("\u23F9")
         .onClick(() => {
           timer.save()
+					this.refreshTimerList()
+        })
+
+      new ButtonComponent(commandContainer)
+        .setIcon("trash")
+        .onClick(() => {
+          this.plugin.timeManager.deleteById(timer.id)
 					this.refreshTimerList()
         })
     }

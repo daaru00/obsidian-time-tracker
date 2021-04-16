@@ -1,10 +1,14 @@
 import * as os from 'os'
-import { Plugin, WorkspaceLeaf } from 'obsidian'
+import { Notice, Plugin, WorkspaceLeaf } from 'obsidian'
 import TimerTrackerPluginSettings, { DEFAULT_SETTINGS } from './settings'
 import JiraIssueSettingTab from './settings-tab'
 import TimerManager from './lib/timer'
 import TimerView, { VIEW_TYPE_OUTPUT } from './timer-view'
 import TimerWidget from './timer-widget'
+import { OnTimerSaveEvent } from './types'
+import FileStorage from './lib/file-storage'
+
+const NO_TIMER_RUNNING_LABEL = 'no running timer'
 
 interface OnTimerSavedEvent {
 	detail: {
@@ -17,12 +21,16 @@ export default class TimerTrackerPlugin extends Plugin {
 	timeManager: TimerManager
 	timerView: TimerView
 	statusBarItem: HTMLElement
+	fileStorage: FileStorage
 
 	async onload(): Promise<void> {
 		await this.loadSettings()
 		this.addSettingTab(new JiraIssueSettingTab(this.app, this))
 
+		this.initFileStorage()
+
 		this.initTimerManager()
+		await this.loadTimers()
 		
 		this.registerMarkdownCodeBlockProcessor('timer', this.timerBlockProcessor.bind(this))
 		this.registerMarkdownPostProcessor(this.postProcessor.bind(this))
@@ -57,12 +65,13 @@ export default class TimerTrackerPlugin extends Plugin {
 		})
 
 		this.statusBarItem = this.addStatusBarItem()
+		this.statusBarItem.setText(NO_TIMER_RUNNING_LABEL)
 		this.statusBarItem.addClass('timer-view-status-bar')
 		this.registerInterval(window.setInterval(() => {
 			const runningTimer = this.timeManager.getRunningTimer()
 			if (!runningTimer) {
 				if (this.statusBarItem.childElementCount > 0) {
-					this.statusBarItem.empty()
+					this.statusBarItem.setText(NO_TIMER_RUNNING_LABEL)
 				}
 				return
 			}
@@ -78,7 +87,7 @@ export default class TimerTrackerPlugin extends Plugin {
 		}, 1000))
 
 		this.registerInterval(window.setInterval(() => {
-			window.document.querySelectorAll('.timer-control-container.timer-view')
+			window.document.querySelectorAll('.timer-control-container.has-timer-view')
 				.forEach(timeWidget => timeWidget.dispatchEvent(new CustomEvent('tick')))
 		}, 1000))
 	}
@@ -101,19 +110,48 @@ export default class TimerTrackerPlugin extends Plugin {
 		});
 	}
 
+	initFileStorage(): void {
+		this.fileStorage = new FileStorage(this)
+	}
+
 	initTimerManager(): void {
 		this.timeManager = new TimerManager()
+		this.timeManager.on('timer-start', this.saveTimers.bind(this))
+    this.timeManager.on('timer-paused', this.saveTimers.bind(this))
+    this.timeManager.on('timer-resumed', this.saveTimers.bind(this))
+    this.timeManager.on('timer-reset', this.saveTimers.bind(this))
+    this.timeManager.on('timer-deleted', this.saveTimers.bind(this))
 		this.timeManager.on('timer-saved', ({ timer }) => {
-			const issueBlock = window.document.querySelector(`.timer-tracker-compatible[data-identifier="${timer.id}"]`)
-			if (issueBlock) {
-				issueBlock.dispatchEvent(new CustomEvent('timersave', { detail: timer }))
+			if (timer.hasTag('external') === false) {
+				this.fileStorage.save(timer).then(() => {
+					new Notice(`Timer saved to file '${this.settings.storageFile}'`)
+					this.onTimeSaved({
+						detail: timer
+					})
+				})
+				return
 			}
+
+			const issueBlock = window.document.querySelector(`.timer-tracker-compatible[data-identifier="${timer.id}"]`)
+			if (!issueBlock) {
+				return
+			}
+
+			const event: OnTimerSaveEvent = {
+				detail: {
+					id: timer.id,
+					duration: timer.getApproximatedDuration(this.settings.approximation),
+					startedAt: timer.startedAt
+				}
+			}
+			
+			issueBlock.dispatchEvent(new CustomEvent('timersave', event))
 		})
 	}
 
 	async timerBlockProcessor(content: string, el: HTMLElement): Promise<void> {
 		el.empty()
-		el.addClasses(['timer-control-container', 'timer-view'])
+		el.addClasses(['timer-control-container', 'has-timer-view'])
 
 		new TimerWidget(this, el)
 			.setIdentifier(content.replace(new RegExp(os.EOL, 'g'), ''))
@@ -140,6 +178,7 @@ export default class TimerTrackerPlugin extends Plugin {
 			new TimerWidget(this, timerWidget)
 				.setIdentifier(identifier)
 				.showTimerControl()
+				.setExternalSource(true)
 		}
 	}
 
@@ -148,10 +187,28 @@ export default class TimerTrackerPlugin extends Plugin {
 	}
 
 	async loadSettings(): Promise<void> {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData())
+		let data  = await this.loadData()
+		data = data || {settings:{}}
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, data.settings || {})
+	}
+
+	async loadTimers(): Promise<void> {
+		let data  = await this.loadData()
+		data = data || {timers:[]}
+		if (data.timers.length === 0) {
+			return
+		}
+		this.timeManager.restore(data.timers)
 	}
 
 	async saveSettings(): Promise<void> {
-		await this.saveData(this.settings)
+		await this.saveData({
+			settings: this.settings,
+			timers: this.timeManager.dump()
+		})
+	}
+
+	async saveTimers(): Promise<void> {
+		this.saveSettings()
 	}
 }

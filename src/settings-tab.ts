@@ -30,5 +30,15 @@ export default class TimeTrackerIssueSettingTab extends PluginSettingTab {
 					this.plugin.settings.approximation = parseInt(value);
 					await this.plugin.saveSettings();
 				}));
+
+		new Setting(containerEl)
+      .setName('Storage file')
+			.setDesc('The path of file used to store saved timers')
+      .addText(text => text
+        .setValue(this.plugin.settings.storageFile)
+        .onChange(async (value) => {
+          this.plugin.settings.storageFile = value
+					await this.plugin.saveSettings();
+        }))
 	}
 }

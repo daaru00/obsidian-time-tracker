@@ -8,6 +8,7 @@ export default class TimerWidget {
   timerControlContainer: HTMLDivElement;
   issueBlock: Element;
   timerView: Element;
+  hasExternalSource: boolean;
 
   constructor(plugin: TimerTrackerPlugin, el: HTMLElement) {
     this.plugin = plugin
@@ -19,6 +20,10 @@ export default class TimerWidget {
     this.plugin.timeManager.on('timer-deleted', this.refreshTimerControl.bind(this))
 
     this.el.addEventListener('tick', this.refreshTimerView.bind(this))
+  }
+
+  setExternalSource(value: boolean): void {
+    this.hasExternalSource = value
   }
 
   setIdentifier(identifier: string): TimerWidget {
@@ -41,10 +46,10 @@ export default class TimerWidget {
     if (!this.timerView) {
       return
     }
-    this.timerView.empty()
 
     const timer = this.plugin.timeManager.getById(this.identifier)
     if (!timer) {
+      this.timerView.setText('00:00:00')
       return
     }
 
@@ -70,6 +75,10 @@ export default class TimerWidget {
         .setButtonText("\u23F5")
         .onClick(() => {
           const timer = this.plugin.timeManager.createNew(this.identifier)
+          if (this.hasExternalSource) {
+            timer.addTag('external')
+          }
+
           timer.start()
           this.refreshTimerView()
         })
@@ -94,6 +103,13 @@ export default class TimerWidget {
         .setButtonText("\u23F9")
         .onClick(() => {
           timer.save()
+          this.refreshTimerView()
+        })
+
+      new ButtonComponent(this.timerControlContainer)
+        .setIcon("trash")
+        .onClick(() => {
+          this.plugin.timeManager.deleteById(timer.id)
           this.refreshTimerView()
         })
     }

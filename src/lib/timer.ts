@@ -11,18 +11,22 @@ function getTimestamp(date?: Date): number {
 
 export class Timer {
   id: string
-  time_entry_id: string
-  comments: string
   durationAcc: number
   startedAt: Date
   resumedAt: Date
   pausedAt: Date
   isRunning: boolean
   timerManager: TimerManager
+  tags: string[]
 
   constructor(timerManager: TimerManager, id: string) {
     this.timerManager = timerManager
     this.id = id
+    this.startedAt = null
+    this.pausedAt = null
+    this.resumedAt = null
+    this.durationAcc = 0
+    this.tags = []
   }
 
   start(): void {
@@ -90,8 +94,8 @@ export class Timer {
     this.durationAcc = this.getDuration()
   }
 
-  getFormattedDurationObject(): TimerDuration {
-    const parts = this.getFormattedDurationString().split(':')
+  getFormattedDurationObject(seconds?: number): TimerDuration {
+    const parts = this.getFormattedDurationString(seconds).split(':')
     return {
       hours: parseInt(parts[0]),
       minutes: parseInt(parts[1]),
@@ -99,8 +103,8 @@ export class Timer {
     }
   }
 
-  getFormattedDurationString(): string {
-    const seconds = this.getDuration()
+  getFormattedDurationString(seconds?: number): string {
+    seconds = seconds || this.getDuration()
     return (new Date(seconds * 1000)).toISOString().substr(11, 8)
   }
 
@@ -114,6 +118,9 @@ export class Timer {
 
   getApproximatedDuration(seconds: number): number {
     let duration = this.getDuration()
+    if (seconds === 0) {
+      return duration
+    }
 
     const approximationEdge = seconds / 2
     const leftHours = duration % seconds
@@ -184,10 +191,36 @@ export class Timer {
 
     return 0
   }
+
+  addTag(tag: string): void {
+    this.tags.push(tag)
+  }
+
+  hasTag(tag: string): boolean {
+    return this.tags.indexOf(tag) !== -1
+  }
+
+  removeTag(tag: string): void {
+    const index = this.tags.indexOf(tag)
+    if (index === -1) {
+      return
+    }
+    this.tags.splice(index, 1)
+  }
 }
 
 interface TimerEvent {
   timer?: Timer
+}
+
+interface ExportedTimer extends Object {
+  id: string
+  durationAcc: number
+  startedAt: Date
+  resumedAt: Date
+  pausedAt: Date
+  isRunning: boolean
+  tags: string[]
 }
 
 export default class TimerManager {
@@ -261,5 +294,55 @@ export default class TimerManager {
     for (const subscription of subscriptions) {
       subscription(data)
     }
+  }
+
+  dump(): ExportedTimer[] {
+    return this.timers.map(timer => ({
+      id: timer.id,
+      durationAcc: timer.durationAcc,
+      startedAt: timer.startedAt,
+      resumedAt: timer.resumedAt,
+      pausedAt: timer.pausedAt,
+      isRunning: timer.isRunning,
+      tags: timer.tags,
+    }))
+  }
+
+  restore(timers: ExportedTimer[]): void {
+    const imported = []
+    for (const timer of timers) {
+      const newTimer = new Timer(this, timer.id)
+      for (const key in timer) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const value = (timer as any)[key];
+        switch (key) {
+          case 'durationAcc':
+            newTimer.durationAcc = parseInt(value)
+            break;
+          case 'startedAt':
+            newTimer.startedAt = new Date(value)
+            break;
+          case 'resumedAt':
+            newTimer.resumedAt = new Date(value)
+            break;
+          case 'pausedAt':
+            newTimer.pausedAt = new Date(value)
+            break;
+          case 'isRunning':
+            newTimer.isRunning = value
+            break;
+          case 'tags':
+            newTimer.tags = value
+            break;
+        }
+      }
+      imported.push(newTimer)
+    }
+
+    if (imported.length === 0) {
+      return
+    }
+
+    this.timers = imported
   }
 }
