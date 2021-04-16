@@ -32,7 +32,7 @@ export default class TimerTrackerPlugin extends Plugin {
 		this.initTimerManager()
 		await this.loadTimers()
 		
-		this.registerMarkdownCodeBlockProcessor('timer', this.timerBlockProcessor.bind(this))
+		this.registerMarkdownCodeBlockProcessor('timetracker', this.timerBlockProcessor.bind(this))
 		this.registerMarkdownPostProcessor(this.postProcessor.bind(this))
 
 		this.registerView(
