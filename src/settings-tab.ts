@@ -40,5 +40,15 @@ export default class TimeTrackerIssueSettingTab extends PluginSettingTab {
           this.plugin.settings.storageFile = value
 					await this.plugin.saveSettings();
         }))
+
+		new Setting(containerEl)
+      .setName('Status bar item')
+			.setDesc('Enable the status bar item for current running timer')
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.enableStatusBar)
+        .onChange(async (value) => {
+          this.plugin.settings.enableStatusBar = value
+					await this.plugin.saveSettings();
+        }))
 	}
 }

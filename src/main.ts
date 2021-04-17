@@ -64,32 +64,49 @@ export default class TimerTrackerPlugin extends Plugin {
 			hotkeys: []
 		})
 
-		this.statusBarItem = this.addStatusBarItem()
-		this.statusBarItem.setText(NO_TIMER_RUNNING_LABEL)
-		this.statusBarItem.addClass('timer-view-status-bar')
+		this.initStatusBar()
 		this.registerInterval(window.setInterval(() => {
-			const runningTimer = this.timeManager.getRunningTimer()
-			if (!runningTimer) {
-				if (this.statusBarItem.childElementCount > 0) {
-					this.statusBarItem.setText(NO_TIMER_RUNNING_LABEL)
-				}
-				return
-			}
-			this.statusBarItem.empty()
-
-			this.statusBarItem.createSpan({
-				text: runningTimer.id
-			})
-			this.statusBarItem.createSpan({
-				text: runningTimer.getFormattedDurationString()
-			}).addClass('timer-view')
-
-		}, 1000))
-
-		this.registerInterval(window.setInterval(() => {
+			this.refreshStatusBar()
 			window.document.querySelectorAll('.timer-control-container.has-timer-view')
 				.forEach(timeWidget => timeWidget.dispatchEvent(new CustomEvent('tick')))
 		}, 1000))
+	}
+
+	initStatusBar(): void {
+		if (!this.settings.enableStatusBar) {
+			if (this.statusBarItem) {
+				this.statusBarItem.remove()
+				this.statusBarItem = null
+			}
+			return
+		}
+
+		if (this.statusBarItem) {
+			return
+		}
+
+		this.statusBarItem = this.addStatusBarItem()
+		this.statusBarItem.addClass('timer-view-status-bar')
+	}
+
+	refreshStatusBar(): void {
+		if (!this.statusBarItem) {
+			return
+		}
+		
+		const runningTimer = this.timeManager.getRunningTimer()
+		if (!runningTimer) {
+			this.statusBarItem.innerHTML = NO_TIMER_RUNNING_LABEL
+			return
+		}
+
+		this.statusBarItem.empty()
+		this.statusBarItem.createSpan({
+			text: runningTimer.id
+		})
+		this.statusBarItem.createSpan({
+			text: runningTimer.getFormattedDurationString()
+		}).addClass('timer-view')
 	}
 
 	initLeaf(): void {
@@ -206,9 +223,13 @@ export default class TimerTrackerPlugin extends Plugin {
 			settings: this.settings,
 			timers: this.timeManager.dump()
 		})
+		this.initStatusBar()
 	}
 
 	async saveTimers(): Promise<void> {
-		this.saveSettings()
+		await this.saveData({
+			settings: this.settings,
+			timers: this.timeManager.dump()
+		})
 	}
 }
