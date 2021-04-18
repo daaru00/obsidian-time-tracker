@@ -2,6 +2,10 @@
 
 An [Obsidian.md](https://obsidian.md/) plugin that help to keep track of time spent on different tasks.
 
+## Installation
+
+Download zip archive from [GitHub releases page](https://github.com/daaru00/obsidian-time-tracker/releases) and extract it into `<vault>/.obsidian/plugins` directory.
+
 ## Usage
 
 Add this code block where you want to show the timer widget:
@@ -14,6 +18,12 @@ example-identifier
 Interact with timers, start, pause, resume, delete:
 
 ![time tracker](./doc/gifs/timers.gif)
+
+## Configurations
+
+When a timer is saved the tracked amount of time can be approximated to the closest 5/10/15 minute, this configuration can be changed in settings page.
+
+![settings](./doc/imgs/timers-settings.png)
 
 ## Commands
 
