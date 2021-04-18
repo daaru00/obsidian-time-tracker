@@ -46,7 +46,10 @@ export default class FileStorage {
       let newContent = content.toString()
 
       if (!content.contains(header)) {
-        newContent += os.EOL + os.EOL + header + os.EOL
+        if (content.trim().length > 0) {
+          newContent += os.EOL + os.EOL
+        }
+        newContent += header + os.EOL
       }
 
       await vault.modify(file, newContent + os.EOL + data)
