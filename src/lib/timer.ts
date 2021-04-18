@@ -314,26 +314,26 @@ export default class TimerManager {
       const newTimer = new Timer(this, timer.id)
       for (const key in timer) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const value = (timer as any)[key];
+        const value = (timer as any)[key]
         switch (key) {
           case 'durationAcc':
             newTimer.durationAcc = parseInt(value)
-            break;
+            break
           case 'startedAt':
             newTimer.startedAt = new Date(value)
-            break;
+            break
           case 'resumedAt':
             newTimer.resumedAt = new Date(value)
-            break;
+            break
           case 'pausedAt':
             newTimer.pausedAt = new Date(value)
-            break;
+            break
           case 'isRunning':
             newTimer.isRunning = value
-            break;
+            break
           case 'tags':
             newTimer.tags = value
-            break;
+            break
         }
       }
       imported.push(newTimer)

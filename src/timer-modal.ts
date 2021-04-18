@@ -1,12 +1,12 @@
-import { FuzzySuggestModal, Notice } from "obsidian"
-import { Timer } from "./lib/timer";
-import TimerTrackerPlugin from "./main";
+import { FuzzySuggestModal, Notice } from 'obsidian'
+import { Timer } from './lib/timer'
+import TimerTrackerPlugin from './main'
 
 abstract class TimerModal extends FuzzySuggestModal<Timer> {
   plugin: TimerTrackerPlugin
 
 	constructor(plugin: TimerTrackerPlugin) {
-		super(plugin.app);
+		super(plugin.app)
     this.plugin = plugin
 	}
 
@@ -15,7 +15,7 @@ abstract class TimerModal extends FuzzySuggestModal<Timer> {
   }
 
   getItemText(timer: Timer): string {
-    return `${timer.id} ${timer.getFormattedDurationString()}`;
+    return `${timer.id} ${timer.getFormattedDurationString()}`
   }
 }
 

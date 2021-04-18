@@ -1,5 +1,5 @@
-import TimerTrackerPlugin from './main';
-import { ButtonComponent, ItemView, WorkspaceLeaf } from "obsidian";
+import TimerTrackerPlugin from './main'
+import { ButtonComponent, ItemView, WorkspaceLeaf } from 'obsidian'
 
 export const VIEW_TYPE_OUTPUT = 'time-tracker'
 
@@ -10,25 +10,25 @@ export default class TimerView extends ItemView {
 	timerTable: HTMLTableSectionElement;
 
 	constructor(leaf: WorkspaceLeaf, plugin: TimerTrackerPlugin) {
-		super(leaf);
+		super(leaf)
 		this.plugin = plugin
 	}
 
 	getViewType(): string {
-		return VIEW_TYPE_OUTPUT;
+		return VIEW_TYPE_OUTPUT
 	}
 
 	getDisplayText(): string {
-		return 'Time Tracker';
+		return 'Time Tracker'
 	}
 
 	getIcon(): string {
-		return "clock";
+		return 'clock'
 	}
 
 	async onOpen(): Promise<void> {
-		const { containerEl } = this;
-		containerEl.empty();
+		const { containerEl } = this
+		containerEl.empty()
 
     const table = containerEl.createEl('table')
 		table.addClass('time-tracker-table')
@@ -61,14 +61,14 @@ export default class TimerView extends ItemView {
 
 			if (timer.isRunning) {
         new ButtonComponent(commandContainer)
-          .setButtonText("\u23F8")
+          .setButtonText('\u23F8')
           .onClick(() => {
             timer.pause()
 						this.refreshTimerList()
           })
       } else {
         new ButtonComponent(commandContainer)
-          .setButtonText("\u23EF")
+          .setButtonText('\u23EF')
           .onClick(() => {
             timer.resume()
 						this.refreshTimerList()
@@ -76,14 +76,14 @@ export default class TimerView extends ItemView {
       }
 
       new ButtonComponent(commandContainer)
-        .setButtonText("\u23F9")
+        .setButtonText('\u23F9')
         .onClick(() => {
           timer.save()
 					this.refreshTimerList()
         })
 
       new ButtonComponent(commandContainer)
-        .setIcon("trash")
+        .setIcon('trash')
         .onClick(() => {
           this.plugin.timeManager.deleteById(timer.id)
 					this.refreshTimerList()

@@ -55,7 +55,7 @@ export default class TimerTrackerPlugin extends Plugin {
 			id: 'app:start-timer',
 			name: 'Start timer',
 			callback: () => {
-				new StartTimerModal(this).open();
+				new StartTimerModal(this).open()
 			},
 			hotkeys: []
 		})
@@ -71,7 +71,7 @@ export default class TimerTrackerPlugin extends Plugin {
 			id: 'app:pause-timer',
 			name: 'Pause timer',
 			callback: () => {
-				new PauseTimerModal(this).open();
+				new PauseTimerModal(this).open()
 			},
 			hotkeys: []
 		})
@@ -87,7 +87,7 @@ export default class TimerTrackerPlugin extends Plugin {
 			id: 'app:delete-timer',
 			name: 'Delete timer',
 			callback: () => {
-				new DeleteTimerModal(this).open();
+				new DeleteTimerModal(this).open()
 			},
 			hotkeys: []
 		})
@@ -96,7 +96,7 @@ export default class TimerTrackerPlugin extends Plugin {
 			id: 'app:save-timer',
 			name: 'Save timer',
 			callback: () => {
-				new SaveTimerModal(this).open();
+				new SaveTimerModal(this).open()
 			},
 			hotkeys: []
 		})
@@ -161,7 +161,7 @@ export default class TimerTrackerPlugin extends Plugin {
 		leaf.setViewState({
 			type: VIEW_TYPE_OUTPUT,
 			active: true
-		});
+		})
 	}
 
 	initFileStorage(): void {
@@ -214,10 +214,10 @@ export default class TimerTrackerPlugin extends Plugin {
 	}
 
 	postProcessor(el: HTMLElement): void {
-		const issueBlocks = Array.from(el.querySelectorAll(".timer-tracker-compatible"))		
+		const issueBlocks = Array.from(el.querySelectorAll('.timer-tracker-compatible'))		
 
 		if (!issueBlocks.length) {
-			return;
+			return
 		}
 
 		for (const issueBlock of issueBlocks) {

@@ -72,7 +72,7 @@ export default class TimerWidget {
     const timer = this.plugin.timeManager.getById(this.identifier)
     if (!timer) {
       new ButtonComponent(this.timerControlContainer)
-        .setButtonText("\u23F5")
+        .setButtonText('\u23F5')
         .onClick(() => {
           const timer = this.plugin.timeManager.createNew(this.identifier)
           if (this.hasExternalSource) {
@@ -85,14 +85,14 @@ export default class TimerWidget {
     } else {
       if (timer.isRunning) {
         new ButtonComponent(this.timerControlContainer)
-          .setButtonText("\u23F8")
+          .setButtonText('\u23F8')
           .onClick(() => {
             timer.pause()
             this.refreshTimerView()
           })
       } else {
         new ButtonComponent(this.timerControlContainer)
-          .setButtonText("\u23EF")
+          .setButtonText('\u23EF')
           .onClick(() => {
             timer.resume()
             this.refreshTimerView()
@@ -100,14 +100,14 @@ export default class TimerWidget {
       }
 
       new ButtonComponent(this.timerControlContainer)
-        .setButtonText("\u23F9")
+        .setButtonText('\u23F9')
         .onClick(() => {
           timer.save()
           this.refreshTimerView()
         })
 
       new ButtonComponent(this.timerControlContainer)
-        .setIcon("trash")
+        .setIcon('trash')
         .onClick(() => {
           this.plugin.timeManager.deleteById(timer.id)
           this.refreshTimerView()
