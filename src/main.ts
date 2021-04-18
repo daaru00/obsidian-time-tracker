@@ -7,6 +7,7 @@ import TimerView, { VIEW_TYPE_OUTPUT } from './timer-view'
 import TimerWidget from './timer-widget'
 import { OnTimerSaveEvent } from './types'
 import FileStorage from './lib/file-storage'
+import { DeleteTimerModal, PauseTimerModal, StartTimerModal, SaveTimerModal } from './timer-modal'
 
 const NO_TIMER_RUNNING_LABEL = 'no running timer'
 
@@ -51,6 +52,15 @@ export default class TimerTrackerPlugin extends Plugin {
 		})
 
 		this.addCommand({
+			id: 'app:start-timer',
+			name: 'Start timer',
+			callback: () => {
+				new StartTimerModal(this).open();
+			},
+			hotkeys: []
+		})
+
+		this.addCommand({
 			id: 'app:pause-all-timers',
 			name: 'Pause all timers',
 			callback: () => this.timeManager.pauseAll(),
@@ -58,9 +68,36 @@ export default class TimerTrackerPlugin extends Plugin {
 		})
 
 		this.addCommand({
+			id: 'app:pause-timer',
+			name: 'Pause timer',
+			callback: () => {
+				new PauseTimerModal(this).open();
+			},
+			hotkeys: []
+		})
+
+		this.addCommand({
 			id: 'app:delete-all-timers',
 			name: 'Delete all timers',
 			callback: () => this.timeManager.deleteAll(),
+			hotkeys: []
+		})
+
+		this.addCommand({
+			id: 'app:delete-timer',
+			name: 'Delete timer',
+			callback: () => {
+				new DeleteTimerModal(this).open();
+			},
+			hotkeys: []
+		})
+
+		this.addCommand({
+			id: 'app:save-timer',
+			name: 'Save timer',
+			callback: () => {
+				new SaveTimerModal(this).open();
+			},
 			hotkeys: []
 		})
 
