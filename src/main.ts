@@ -8,6 +8,7 @@ import TimerWidget from './timer-widget'
 import { OnTimerSaveEvent } from './types'
 import FileStorage from './lib/file-storage'
 import { DeleteTimerModal, PauseTimerModal, StartTimerModal, SaveTimerModal } from './timer-modal'
+import NewTimerModal from './new-timer-modal'
 
 const NO_TIMER_RUNNING_LABEL = 'no running timer'
 
@@ -97,6 +98,15 @@ export default class TimerTrackerPlugin extends Plugin {
 			name: 'Save timer',
 			callback: () => {
 				new SaveTimerModal(this).open()
+			},
+			hotkeys: []
+		})
+
+		this.addCommand({
+			id: 'app:new-timer',
+			name: 'New timer',
+			callback: () => {
+				new NewTimerModal(this).open()
 			},
 			hotkeys: []
 		})

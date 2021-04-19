@@ -31,6 +31,10 @@ You can also use commands to interact with timer in the same way as the UI:
 
 ![time tracker commands](./doc/gifs/timers-commands.gif)
 
+Also creating a new timer (will also pause other running timers):
+
+![new time tracker](./doc/gifs/new-timer.gif)
+
 ## Saving
 
 When you use the stop action for a timer it will be deleted from the list of timers and saved into a configurable "storage file":
