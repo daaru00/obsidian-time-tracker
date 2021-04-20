@@ -209,7 +209,7 @@ export class Timer {
   }
 }
 
-interface TimerEvent {
+export interface TimerEvent {
   timer?: Timer
 }
 

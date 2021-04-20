@@ -8,7 +8,7 @@ export default class TimerWidget {
   timerControlContainer: HTMLDivElement;
   issueBlock: Element;
   timerView: Element;
-  hasExternalSource: boolean;
+  externalTypeName: string;
 
   constructor(plugin: TimerTrackerPlugin, el: HTMLElement) {
     this.plugin = plugin
@@ -22,8 +22,10 @@ export default class TimerWidget {
     this.el.addEventListener('tick', this.refreshTimerView.bind(this))
   }
 
-  setExternalSource(value: boolean): void {
-    this.hasExternalSource = value
+  setType(name: string): TimerWidget {
+    this.externalTypeName = name
+
+    return this
   }
 
   setIdentifier(identifier: string): TimerWidget {
@@ -75,8 +77,8 @@ export default class TimerWidget {
         .setButtonText('\u23F5')
         .onClick(() => {
           const timer = this.plugin.timeManager.createNew(this.identifier)
-          if (this.hasExternalSource) {
-            timer.addTag('external')
+          if (this.externalTypeName) {
+            timer.addTag(this.externalTypeName)
           }
 
           timer.start()

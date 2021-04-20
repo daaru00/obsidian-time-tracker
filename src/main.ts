@@ -2,15 +2,23 @@ import * as os from 'os'
 import { Notice, Plugin, WorkspaceLeaf } from 'obsidian'
 import TimerTrackerPluginSettings, { DEFAULT_SETTINGS } from './settings'
 import JiraIssueSettingTab from './settings-tab'
-import TimerManager from './lib/timer'
+import TimerManager, {TimerEvent} from './lib/timer'
 import TimerView, { VIEW_TYPE_OUTPUT } from './timer-view'
 import TimerWidget from './timer-widget'
-import { OnTimerSaveEvent } from './types'
 import FileStorage from './lib/file-storage'
 import { DeleteTimerModal, PauseTimerModal, StartTimerModal, SaveTimerModal } from './timer-modal'
 import NewTimerModal from './new-timer-modal'
 
 const NO_TIMER_RUNNING_LABEL = 'no running timer'
+const EVENT_BUS_NAME = 'time-tracker-event-bus'
+
+declare global {
+	interface Window {
+		timeTrackerEventBus: Comment;
+		jiraEventBus: Comment;
+		redmineEventBus: Comment;
+	}
+}
 
 interface OnTimerSavedEvent {
 	detail: {
@@ -136,26 +144,6 @@ export default class TimerTrackerPlugin extends Plugin {
 		this.statusBarItem.addClass('timer-view-status-bar')
 	}
 
-	refreshStatusBar(): void {
-		if (!this.statusBarItem) {
-			return
-		}
-		
-		const runningTimer = this.timeManager.getRunningTimer()
-		if (!runningTimer) {
-			this.statusBarItem.innerHTML = NO_TIMER_RUNNING_LABEL
-			return
-		}
-
-		this.statusBarItem.empty()
-		this.statusBarItem.createSpan({
-			text: runningTimer.id
-		})
-		this.statusBarItem.createSpan({
-			text: runningTimer.getFormattedDurationString()
-		}).addClass('timer-view')
-	}
-
 	initLeaf(): void {
 		const { workspace } = this.app
 
@@ -185,32 +173,30 @@ export default class TimerTrackerPlugin extends Plugin {
     this.timeManager.on('timer-resumed', this.saveTimers.bind(this))
     this.timeManager.on('timer-reset', this.saveTimers.bind(this))
     this.timeManager.on('timer-deleted', this.saveTimers.bind(this))
-		this.timeManager.on('timer-saved', ({ timer }) => {
-			if (timer.hasTag('external') === false) {
-				this.fileStorage.save(timer).then(() => {
-					new Notice(`Timer saved to file '${this.settings.storageFile}'`)
-					this.onTimeSaved({
-						detail: timer
-					})
-				})
-				return
-			}
+		this.timeManager.on('timer-saved', this.onTimerSave.bind(this))
 
-			const issueBlock = window.document.querySelector(`.timer-tracker-compatible[data-identifier="${timer.id}"]`)
-			if (!issueBlock) {
-				return
-			}
+		window.timeTrackerEventBus = document.createComment(EVENT_BUS_NAME)
+		window.timeTrackerEventBus.addEventListener('timersaved', this.onTimerSaved.bind(this))
+	}
 
-			const event: OnTimerSaveEvent = {
-				detail: {
-					id: timer.id,
-					duration: timer.getApproximatedDuration(this.settings.approximation),
-					startedAt: timer.startedAt
-				}
-			}
-			
-			issueBlock.dispatchEvent(new CustomEvent('timersave', event))
+	refreshStatusBar(): void {
+		if (!this.statusBarItem) {
+			return
+		}
+		
+		const runningTimer = this.timeManager.getRunningTimer()
+		if (!runningTimer) {
+			this.statusBarItem.innerHTML = NO_TIMER_RUNNING_LABEL
+			return
+		}
+
+		this.statusBarItem.empty()
+		this.statusBarItem.createSpan({
+			text: runningTimer.id
 		})
+		this.statusBarItem.createSpan({
+			text: runningTimer.getFormattedDurationString()
+		}).addClass('timer-view')
 	}
 
 	async timerBlockProcessor(content: string, el: HTMLElement): Promise<void> {
@@ -236,17 +222,56 @@ export default class TimerTrackerPlugin extends Plugin {
 				continue
 			}
 
+			const typeName = issueBlock.getAttribute('data-type')
+			if (!typeName) {
+				continue
+			}
+
 			const timerWidget = issueBlock.parentElement.createDiv({ cls: ['timer-control-container'] })
-			timerWidget.addEventListener('timersaved', this.onTimeSaved.bind(this))
 
 			new TimerWidget(this, timerWidget)
 				.setIdentifier(identifier)
+				.setType(typeName)
 				.showTimerControl()
-				.setExternalSource(true)
 		}
 	}
 
-	async onTimeSaved(event: OnTimerSavedEvent): Promise<void> {
+	onTimerSave(event: TimerEvent): void {
+		const { timer } = event
+
+		if (timer.hasTag('jira') && window.jiraEventBus) {
+			window.jiraEventBus.dispatchEvent(new CustomEvent('timersave', {
+				detail: {
+					id: timer.id,
+					duration: timer.getApproximatedDuration(this.settings.approximation),
+					startedAt: timer.startedAt
+				}
+			}))
+			// this.onTimerSaved will be fired by jira plugin
+			return
+		}
+
+		if (timer.hasTag('redmine') && window.redmineEventBus) {
+			window.redmineEventBus.dispatchEvent(new CustomEvent('timersave', {
+				detail: {
+					id: timer.id,
+					duration: timer.getApproximatedDuration(this.settings.approximation),
+					startedAt: timer.startedAt
+				}
+			}))
+			// this.onTimerSaved will be fired by redmine plugin
+			return
+		}
+		
+		this.fileStorage.save(timer).then(() => {
+			new Notice(`Timer saved to file '${this.settings.storageFile}'`)
+			this.onTimerSaved({
+				detail: timer
+			})
+		})
+	}
+
+	onTimerSaved(event: OnTimerSavedEvent): void {
 		this.timeManager.deleteById(event.detail.id)
 	}
 
@@ -278,5 +303,9 @@ export default class TimerTrackerPlugin extends Plugin {
 			settings: this.settings,
 			timers: this.timeManager.dump()
 		})
+	}
+
+	onunload(): void {
+		delete window.timeTrackerEventBus
 	}
 }
