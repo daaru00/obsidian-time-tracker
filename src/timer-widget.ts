@@ -74,7 +74,7 @@ export default class TimerWidget {
     const timer = this.plugin.timeManager.getById(this.identifier)
     if (!timer) {
       new ButtonComponent(this.timerControlContainer)
-        .setButtonText('\u23F5')
+        .setIcon('time-tracker-play')
         .onClick(() => {
           const timer = this.plugin.timeManager.createNew(this.identifier)
           if (this.externalTypeName) {
@@ -87,14 +87,14 @@ export default class TimerWidget {
     } else {
       if (timer.isRunning) {
         new ButtonComponent(this.timerControlContainer)
-          .setButtonText('\u23F8')
+          .setIcon('time-tracker-pause')
           .onClick(() => {
             timer.pause()
             this.refreshTimerView()
           })
       } else {
         new ButtonComponent(this.timerControlContainer)
-          .setButtonText('\u23EF')
+          .setIcon('time-tracker-resume')
           .onClick(() => {
             timer.resume()
             this.refreshTimerView()
@@ -102,7 +102,7 @@ export default class TimerWidget {
       }
 
       new ButtonComponent(this.timerControlContainer)
-        .setButtonText('\u23F9')
+        .setIcon('time-tracker-stop')
         .onClick(() => {
           timer.save()
           this.refreshTimerView()

@@ -1,5 +1,6 @@
 import * as os from 'os'
 import { Notice, Plugin, WorkspaceLeaf } from 'obsidian'
+import './lib/icons'
 import TimerTrackerPluginSettings, { DEFAULT_SETTINGS } from './settings'
 import JiraIssueSettingTab from './settings-tab'
 import TimerManager, {TimerEvent} from './lib/timer'

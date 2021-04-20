@@ -11,7 +11,6 @@ export default class TimeTrackerIssueSettingTab extends PluginSettingTab {
 
   async display(): Promise<void> {
     const { containerEl } = this
-
     containerEl.empty()
 
     new Setting(containerEl)

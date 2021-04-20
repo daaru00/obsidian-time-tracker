@@ -61,14 +61,14 @@ export default class TimerView extends ItemView {
 
 			if (timer.isRunning) {
         new ButtonComponent(commandContainer)
-          .setButtonText('\u23F8')
+          .setIcon('time-tracker-pause')
           .onClick(() => {
             timer.pause()
 						this.refreshTimerList()
           })
       } else {
         new ButtonComponent(commandContainer)
-          .setButtonText('\u23EF')
+          .setIcon('time-tracker-resume')
           .onClick(() => {
             timer.resume()
 						this.refreshTimerList()
@@ -76,7 +76,7 @@ export default class TimerView extends ItemView {
       }
 
       new ButtonComponent(commandContainer)
-        .setButtonText('\u23F9')
+        .setIcon('time-tracker-stop')
         .onClick(() => {
           timer.save()
 					this.refreshTimerList()
