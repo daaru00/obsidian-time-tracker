@@ -6,6 +6,6 @@ export default interface TimerTrackerPluginSettings {
 
 export const DEFAULT_SETTINGS: TimerTrackerPluginSettings = {
 	approximation: 0,
-	storageFile: 'TimerTracker',
+	storageFile: 'TimeTracker',
 	enableStatusBar: true
 }
