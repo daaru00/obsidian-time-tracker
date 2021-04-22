@@ -49,7 +49,8 @@ export default class TimerView extends ItemView {
 				text: 'no timers found',
 				attr: {
 					'col-span': '3'
-				}
+				},
+				cls: ['time-tracker-table-no-timers']
 			})
 			return
 		}

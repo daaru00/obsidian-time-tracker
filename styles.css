@@ -60,6 +60,10 @@
     white-space: nowrap;
 }
 
+.time-tracker-table-no-timers {
+    text-align: center;
+}
+
 .time-tracker-table-commands button {
     margin: 0 2px;
     padding: 0.5em;
