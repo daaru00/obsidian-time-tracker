@@ -14,7 +14,7 @@ export default class NewTimerModal extends Modal {
 
     this.contentEl.createEl('h2', {
       text: 'Start a new timer',
-      cls: ['redmine-modal-title']
+      cls: ['time-tracker-modal-title']
     })
 
     const form = this.contentEl.createEl('form')
@@ -32,7 +32,7 @@ export default class NewTimerModal extends Modal {
           .focus()
       )
 
-    const commandContainer = form.createDiv({ cls: ['redmine-modal-commands'] })
+    const commandContainer = form.createDiv({ cls: ['time-tracker-modal-commands'] })
     const btnSave = new ButtonComponent(commandContainer)
       .setButtonText('start')
     

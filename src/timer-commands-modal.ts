@@ -1,4 +1,5 @@
 import { FuzzySuggestModal, Notice } from 'obsidian'
+import TimerEditModal from './edit-timer-modal'
 import { Timer } from './lib/timer'
 import TimerTrackerPlugin from './main'
 
@@ -51,5 +52,12 @@ export class DeleteTimerModal extends TimerModal {
 export class SaveTimerModal extends TimerModal {
   onChooseItem(timer: Timer): void {
     timer.save()
+  }
+}
+
+export class EditTimerModal extends TimerModal {
+  onChooseItem(timer: Timer): void {
+    timer.pause()
+    new TimerEditModal(this.plugin, timer).open()
   }
 }

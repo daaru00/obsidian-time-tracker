@@ -1,5 +1,6 @@
 import TimerTrackerPlugin from './main'
 import { ButtonComponent, ItemView, WorkspaceLeaf } from 'obsidian'
+import TimerEditModal from './edit-timer-modal'
 
 export const VIEW_TYPE_OUTPUT = 'time-tracker'
 
@@ -32,32 +33,43 @@ export default class TimerView extends ItemView {
 
     const table = containerEl.createEl('table')
 		table.addClass('time-tracker-table')
-
-		table.createTHead().createEl('th').setText('Identifier')
-		table.createTHead().createEl('th').setText('Time')
-		table.createTHead().createEl('th').setText('Commands')
 		this.timerTable = table.createTBody()
 
 		this.refreshTimerList()
-    this.registerInterval(window.setInterval(this.refreshTimerList.bind(this), 1000))
+    //this.registerInterval(window.setInterval(this.refreshTimerList.bind(this), 1000))
 	}
 
   refreshTimerList(): void {
     this.timerTable.empty()
 
     const timers = this.plugin.timeManager.getAll()
+		if (timers.length === 0) {
+			const row = this.timerTable.createEl('tr')
+			row.createEl('td', {
+				text: 'no timers found',
+				attr: {
+					'col-span': '3'
+				}
+			})
+			return
+		}
+
     for (const timer of timers) {
 			const row = this.timerTable.createEl('tr')
 
 			row.createEl('td', {
-				text: timer.id
+				text: timer.id,
+				cls: ['time-tracker-table-id']
 			})
 
 			row.createEl('td', {
-				text: timer.getFormattedDurationString()
+				text: timer.getFormattedDurationString(),
+				cls: ['time-tracker-table-time']
 			}).addClass('timer-view')
 
-      const commandContainer = row.createEl('td')
+      const commandContainer = row.createEl('td', {
+				cls: ['time-tracker-table-commands']
+			})
 
 			if (timer.isRunning) {
         new ButtonComponent(commandContainer)
@@ -74,6 +86,15 @@ export default class TimerView extends ItemView {
 						this.refreshTimerList()
           })
       }
+
+			new ButtonComponent(commandContainer)
+        .setIcon('pencil')
+        .onClick(() => {
+					timer.pause()
+					this.refreshTimerList()
+
+          new TimerEditModal(this.plugin, timer).open()
+        })
 
       new ButtonComponent(commandContainer)
         .setIcon('time-tracker-stop')

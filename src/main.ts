@@ -3,11 +3,11 @@ import { Notice, Plugin, WorkspaceLeaf } from 'obsidian'
 import './lib/icons'
 import TimerTrackerPluginSettings, { DEFAULT_SETTINGS } from './settings'
 import JiraIssueSettingTab from './settings-tab'
-import TimerManager, {TimerEvent} from './lib/timer'
+import TimerManager, {Timer, TimerEvent} from './lib/timer'
 import TimerView, { VIEW_TYPE_OUTPUT } from './timer-view'
 import TimerWidget from './timer-widget'
 import FileStorage from './lib/file-storage'
-import { DeleteTimerModal, PauseTimerModal, StartTimerModal, SaveTimerModal } from './timer-modal'
+import { DeleteTimerModal, PauseTimerModal, StartTimerModal, SaveTimerModal, EditTimerModal } from './timer-commands-modal'
 import NewTimerModal from './new-timer-modal'
 
 const NO_TIMER_RUNNING_LABEL = 'no running timer'
@@ -22,9 +22,7 @@ declare global {
 }
 
 interface OnTimerSavedEvent {
-	detail: {
-		id: string
-	}
+	detail: Timer
 }
 
 export default class TimerTrackerPlugin extends Plugin {
@@ -120,6 +118,15 @@ export default class TimerTrackerPlugin extends Plugin {
 			hotkeys: []
 		})
 
+		this.addCommand({
+			id: 'app:edit-timer',
+			name: 'Edit timer',
+			callback: () => {
+				new EditTimerModal(this).open()
+			},
+			hotkeys: []
+		})
+
 		this.initStatusBar()
 		this.registerInterval(window.setInterval(() => {
 			this.refreshStatusBar()
@@ -174,6 +181,7 @@ export default class TimerTrackerPlugin extends Plugin {
     this.timeManager.on('timer-resumed', this.saveTimers.bind(this))
     this.timeManager.on('timer-reset', this.saveTimers.bind(this))
     this.timeManager.on('timer-deleted', this.saveTimers.bind(this))
+    this.timeManager.on('timer-edited', this.saveTimers.bind(this))
 		this.timeManager.on('timer-saved', this.onTimerSave.bind(this))
 
 		window.timeTrackerEventBus = document.createComment(EVENT_BUS_NAME)
@@ -265,7 +273,11 @@ export default class TimerTrackerPlugin extends Plugin {
 		}
 		
 		this.fileStorage.save(timer).then(() => {
-			new Notice(`Timer saved to file '${this.settings.storageFile}'`)
+			if (timer.hasTag('pomodoro')) {
+				new Notice(`Pomodoro saved to file '${this.settings.storageFile}'`)
+			} else {
+				new Notice(`Timer saved to file '${this.settings.storageFile}'`)
+			}
 			this.onTimerSaved({
 				detail: timer
 			})
@@ -273,6 +285,9 @@ export default class TimerTrackerPlugin extends Plugin {
 	}
 
 	onTimerSaved(event: OnTimerSavedEvent): void {
+		if (event.detail.hasTag('pomodoro')) {
+			return
+		}
 		this.timeManager.deleteById(event.detail.id)
 	}
 

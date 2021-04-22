@@ -169,7 +169,7 @@ export class Timer {
       return (getTimestamp(this.pausedAt) - getTimestamp(this.startedAt)) + (now - getTimestamp(this.resumedAt))
     }
 
-    // timer paused an other time
+    // timer paused at least once
     if (this.startedAt !== null &&
        !this.isRunning &&
        this.pausedAt !== null &&
@@ -179,7 +179,7 @@ export class Timer {
       return this.durationAcc
     }
 
-    // timer resumed an other timer
+    // timer resumed at least once
     if (this.startedAt !== null &&
        this.isRunning &&
        this.pausedAt !== null &&
@@ -190,6 +190,20 @@ export class Timer {
     }
 
     return 0
+  }
+
+  setDuration(seconds: number): void {
+    const now = new Date()
+    this.startedAt = now
+    this.pausedAt = now
+    this.resumedAt = now
+    this.durationAcc = seconds
+
+    if (this.isRunning) {
+      this.resumedAt = new Date()
+    }
+
+    this.timerManager.emit('timer-edited', { timer: this })
   }
 
   addTag(tag: string): void {
@@ -274,6 +288,13 @@ export default class TimerManager {
     for (const id of ids) {
       this.emit('timer-deleted', { timer: { id } })
     }
+  }
+
+  createNewPomodoro(id:string, seconds: number): Timer {
+    const timer = new Timer(this, id)
+    timer.addTag('pomodoro')
+    timer.setDuration(seconds)
+    return timer
   }
 
   on(event: string, callback: (event: TimerEvent) => void): void {

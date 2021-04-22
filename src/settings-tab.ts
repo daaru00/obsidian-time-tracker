@@ -31,6 +31,22 @@ export default class TimeTrackerIssueSettingTab extends PluginSettingTab {
         }))
 
     new Setting(containerEl)
+      .setName('Pomodoro duration')
+      .setDesc('The duration of pomodoro timer')
+      .addDropdown(dropdown => dropdown
+        .addOptions({
+          '300': '5 minutes',
+          '900': '15 minutes',
+          '1500': '25 minutes',
+          '1800': '30 minutes',
+        })
+        .setValue(this.plugin.settings.pomodoroDuration.toString())
+        .onChange(async (value) => {
+          this.plugin.settings.pomodoroDuration = parseInt(value)
+          await this.plugin.saveSettings()
+        }))
+
+    new Setting(containerEl)
       .setName('Storage file')
       .setDesc('The path of file used to store saved timers')
       .addText(text => text

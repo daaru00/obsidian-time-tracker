@@ -1,5 +1,6 @@
 import TimerTrackerPlugin from './main'
 import { ButtonComponent } from 'obsidian'
+import TimerEditModal from './edit-timer-modal'
 
 export default class TimerWidget {
   el: HTMLElement;
@@ -18,6 +19,7 @@ export default class TimerWidget {
     this.plugin.timeManager.on('timer-resumed', this.refreshTimerControl.bind(this))
     this.plugin.timeManager.on('timer-reset', this.refreshTimerControl.bind(this))
     this.plugin.timeManager.on('timer-deleted', this.refreshTimerControl.bind(this))
+    this.plugin.timeManager.on('timer-edited', this.refreshTimerControl.bind(this))
 
     this.el.addEventListener('tick', this.refreshTimerView.bind(this))
   }
@@ -72,19 +74,30 @@ export default class TimerWidget {
     this.timerControlContainer.empty()
 
     const timer = this.plugin.timeManager.getById(this.identifier)
-    if (!timer) {
+    if (timer) {
       new ButtonComponent(this.timerControlContainer)
-        .setIcon('time-tracker-play')
+        .setIcon('trash')
         .onClick(() => {
-          const timer = this.plugin.timeManager.createNew(this.identifier)
-          if (this.externalTypeName) {
-            timer.addTag(this.externalTypeName)
-          }
-
-          timer.start()
+          this.plugin.timeManager.deleteById(timer.id)
           this.refreshTimerView()
         })
-    } else {
+
+      new ButtonComponent(this.timerControlContainer)
+        .setIcon('pencil')
+        .onClick(() => {
+          timer.pause()
+          this.refreshTimerView()
+
+          new TimerEditModal(this.plugin, timer).open()
+        })
+
+      new ButtonComponent(this.timerControlContainer)
+        .setIcon('time-tracker-stop')
+        .onClick(() => {
+          timer.save()
+          this.refreshTimerView()
+        })
+
       if (timer.isRunning) {
         new ButtonComponent(this.timerControlContainer)
           .setIcon('time-tracker-pause')
@@ -101,19 +114,29 @@ export default class TimerWidget {
           })
       }
 
+    } else {
       new ButtonComponent(this.timerControlContainer)
-        .setIcon('time-tracker-stop')
+        .setIcon('time-tracker-play')
         .onClick(() => {
-          timer.save()
-          this.refreshTimerView()
-        })
+          const timer = this.plugin.timeManager.createNew(this.identifier)
+          if (this.externalTypeName) {
+            timer.addTag(this.externalTypeName)
+          }
 
-      new ButtonComponent(this.timerControlContainer)
-        .setIcon('trash')
-        .onClick(() => {
-          this.plugin.timeManager.deleteById(timer.id)
+          timer.start()
           this.refreshTimerView()
         })
     }
+
+    new ButtonComponent(this.timerControlContainer)
+      .setIcon('clock')
+      .onClick(() => {
+        const pomodoro = this.plugin.timeManager.createNewPomodoro(this.identifier, this.plugin.settings.pomodoroDuration)
+        if (this.externalTypeName) {
+          pomodoro.addTag(this.externalTypeName)
+        }
+
+        pomodoro.save()
+      })
   }
 }
