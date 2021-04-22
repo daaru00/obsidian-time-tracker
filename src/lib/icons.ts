@@ -1,6 +1,5 @@
 import { addIcon } from 'obsidian'
 
-
 addIcon('time-tracker-play', `
 <g
    id="g4"

@@ -46,7 +46,7 @@ export default class TimerView extends ItemView {
 		if (timers.length === 0) {
 			const row = this.timerTable.createEl('tr')
 			row.createEl('td', {
-				text: 'no timers found',
+				text: 'no active timers',
 				attr: {
 					'col-span': '3'
 				},
