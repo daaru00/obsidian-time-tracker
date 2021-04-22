@@ -3,12 +3,13 @@ import { Notice, Plugin, WorkspaceLeaf } from 'obsidian'
 import './lib/icons'
 import TimerTrackerPluginSettings, { DEFAULT_SETTINGS } from './settings'
 import JiraIssueSettingTab from './settings-tab'
-import TimerManager, {Timer, TimerEvent} from './lib/timer'
+import TimerManager, {TimerEvent} from './lib/timer'
 import TimerView, { VIEW_TYPE_OUTPUT } from './timer-view'
 import TimerWidget from './timer-widget'
 import FileStorage from './lib/file-storage'
 import { DeleteTimerModal, PauseTimerModal, StartTimerModal, SaveTimerModal, EditTimerModal } from './timer-commands-modal'
 import NewTimerModal from './new-timer-modal'
+import { OnTimerSavedEvent } from './types'
 
 const NO_TIMER_RUNNING_LABEL = 'no running timer'
 const EVENT_BUS_NAME = 'time-tracker-event-bus'
@@ -19,10 +20,6 @@ declare global {
 		jiraEventBus: Comment;
 		redmineEventBus: Comment;
 	}
-}
-
-interface OnTimerSavedEvent {
-	detail: Timer
 }
 
 export default class TimerTrackerPlugin extends Plugin {
@@ -253,7 +250,8 @@ export default class TimerTrackerPlugin extends Plugin {
 				detail: {
 					id: timer.id,
 					duration: timer.getApproximatedDuration(this.settings.approximation),
-					startedAt: timer.startedAt
+					startedAt: timer.startedAt,
+					tags: timer.tags
 				}
 			}))
 			// this.onTimerSaved will be fired by jira plugin
@@ -265,7 +263,8 @@ export default class TimerTrackerPlugin extends Plugin {
 				detail: {
 					id: timer.id,
 					duration: timer.getApproximatedDuration(this.settings.approximation),
-					startedAt: timer.startedAt
+					startedAt: timer.startedAt,
+					tags: timer.tags
 				}
 			}))
 			// this.onTimerSaved will be fired by redmine plugin
@@ -279,13 +278,16 @@ export default class TimerTrackerPlugin extends Plugin {
 				new Notice(`Timer saved to file '${this.settings.storageFile}'`)
 			}
 			this.onTimerSaved({
-				detail: timer
+				detail: {
+					id: timer.id,
+					tags: timer.tags
+				}
 			})
 		})
 	}
 
 	onTimerSaved(event: OnTimerSavedEvent): void {
-		if (event.detail.hasTag('pomodoro')) {
+		if (event.detail.tags.includes('pomodoro')) {
 			return
 		}
 		this.timeManager.deleteById(event.detail.id)
