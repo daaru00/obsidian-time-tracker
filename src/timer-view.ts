@@ -36,7 +36,7 @@ export default class TimerView extends ItemView {
 		this.timerTable = table.createTBody()
 
 		this.refreshTimerList()
-    //this.registerInterval(window.setInterval(this.refreshTimerList.bind(this), 1000))
+    this.registerInterval(window.setInterval(this.refreshTimerList.bind(this), 1000))
 	}
 
   refreshTimerList(): void {
