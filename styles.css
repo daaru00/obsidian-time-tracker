@@ -4,6 +4,10 @@
     background-color: var(--background-primary-alt);
 }
 
+.timer-tracker-compatible.loading + .timer-control-container {
+    display: none;
+}
+
 .timer-tracker-compatible.in-error + .timer-control-container {
     display: none;
 }
