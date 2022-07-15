@@ -74,14 +74,14 @@ export default class TimerView extends ItemView {
 
 			if (timer.isRunning) {
         new ButtonComponent(commandContainer)
-          .setIcon('time-tracker-pause')
+          .setIcon('time-tracker-pause').setTooltip('Pause Timer')
           .onClick(() => {
             timer.pause()
 						this.refreshTimerList()
           })
       } else {
         new ButtonComponent(commandContainer)
-          .setIcon('time-tracker-resume')
+          .setIcon('time-tracker-resume').setTooltip('Start Timer')
           .onClick(() => {
             timer.resume()
 						this.refreshTimerList()
@@ -89,7 +89,7 @@ export default class TimerView extends ItemView {
       }
 
 			new ButtonComponent(commandContainer)
-        .setIcon('pencil')
+        .setIcon('pencil').setTooltip('Edit Timer')
         .onClick(() => {
 					timer.pause()
 					this.refreshTimerList()
@@ -98,14 +98,14 @@ export default class TimerView extends ItemView {
         })
 
       new ButtonComponent(commandContainer)
-        .setIcon('time-tracker-stop')
+        .setIcon('time-tracker-stop').setTooltip('Stop Timer')
         .onClick(() => {
           timer.save()
 					this.refreshTimerList()
         })
 
       new ButtonComponent(commandContainer)
-        .setIcon('trash')
+        .setIcon('trash').setTooltip('Delete Timer')
         .onClick(() => {
           this.plugin.timeManager.deleteById(timer.id)
 					this.refreshTimerList()
