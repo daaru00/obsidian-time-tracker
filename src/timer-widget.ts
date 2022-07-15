@@ -76,14 +76,14 @@ export default class TimerWidget {
     const timer = this.plugin.timeManager.getById(this.identifier)
     if (timer) {
       new ButtonComponent(this.timerControlContainer)
-        .setIcon('trash')
+        .setIcon('trash').setTooltip('Delete Timer')
         .onClick(() => {
           this.plugin.timeManager.deleteById(timer.id)
           this.refreshTimerView()
         })
 
       new ButtonComponent(this.timerControlContainer)
-        .setIcon('pencil')
+        .setIcon('pencil').setTooltip('Edit Timer')
         .onClick(() => {
           timer.pause()
           this.refreshTimerView()
@@ -92,7 +92,7 @@ export default class TimerWidget {
         })
 
       new ButtonComponent(this.timerControlContainer)
-        .setIcon('time-tracker-stop')
+        .setIcon('time-tracker-stop').setTooltip('Stop Timer')
         .onClick(() => {
           timer.save()
           this.refreshTimerView()
@@ -100,14 +100,14 @@ export default class TimerWidget {
 
       if (timer.isRunning) {
         new ButtonComponent(this.timerControlContainer)
-          .setIcon('time-tracker-pause')
+          .setIcon('time-tracker-pause').setTooltip('Pause Timer')
           .onClick(() => {
             timer.pause()
             this.refreshTimerView()
           })
       } else {
         new ButtonComponent(this.timerControlContainer)
-          .setIcon('time-tracker-resume')
+          .setIcon('time-tracker-resume').setTooltip('Start Timer')
           .onClick(() => {
             timer.resume()
             this.refreshTimerView()
@@ -116,7 +116,7 @@ export default class TimerWidget {
 
     } else {
       new ButtonComponent(this.timerControlContainer)
-        .setIcon('time-tracker-play')
+        .setIcon('time-tracker-play').setTooltip('Start Timer')
         .onClick(() => {
           const timer = this.plugin.timeManager.createNew(this.identifier)
           if (this.externalTypeName) {
@@ -129,7 +129,7 @@ export default class TimerWidget {
     }
 
     new ButtonComponent(this.timerControlContainer)
-      .setIcon('clock')
+      .setIcon('clock').setTooltip('Store Time')
       .onClick(() => {
         const pomodoro = this.plugin.timeManager.createNewPomodoro(this.identifier, this.plugin.settings.pomodoroDuration)
         if (this.externalTypeName) {
